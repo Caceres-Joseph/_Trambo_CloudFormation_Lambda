@@ -1,0 +1,56 @@
+Description: This template contains the DynamoDB table required by our entire stack.
+
+Parameters: 
+
+  #+------------------------------------------------------------------
+  #|  File VPC.yaml
+  #+------------------------------------------------------------------
+
+  #-------------
+  # DynamoDB
+  TableName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+    Default: joseph
+
+  #+------------------------------------------------------------------
+  #|  Bucket name
+  #+------------------------------------------------------------------
+
+  BucketName:
+    Description: Bucket name where the templates are located
+    Type: String
+    Default: joseph-templates.s3-us-west-2.amazonaws.com
+
+Resources:
+
+  #-------------
+  # DB
+  DynamoDB:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        TableName: !Ref TableName
+      TemplateURL: !Sub https://${BucketName}/Ejercicio_Lambda/DB/Dynamo.yaml 
+  #+------------------------------------------------------------------
+  #|  Lambda
+  #+------------------------------------------------------------------
+
+  #-------------
+  # Lambda
+  InsertFunction:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        TableName: !Ref TableName
+      TemplateURL: !Sub https://${BucketName}/Ejercicio_Lambda/Lambda/lambda.yaml 
+
+
+  #-------------
+  # Api Gateway  
+  ApiGateway:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        TableName: !Ref TableName
+      TemplateURL: !Sub https://${BucketName}/Ejercicio_Lambda/Api/api.yaml 

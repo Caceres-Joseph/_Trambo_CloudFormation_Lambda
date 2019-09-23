@@ -1,0 +1,34 @@
+
+Description:  This template contains the DynamoDB table required by our entire stack.
+
+Parameters: 
+  #-------------
+  # Table name
+
+  TableName:
+      Description: An environment name that will be prefixed to resource names
+      Type: String
+ 
+
+Resources:
+
+  DynamoDBTable: 
+    Type: "AWS::DynamoDB::Table"
+    Properties: 
+      AttributeDefinitions: 
+        - 
+          AttributeName: "dpi"
+          AttributeType: "S"
+      KeySchema: 
+        - 
+          AttributeName: "dpi"
+          KeyType: "HASH"
+      ProvisionedThroughput: 
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+      TableName: !Sub ${TableName}-Table
+
+Outputs:
+  DynamoDBTable:
+      Description: A reference to the DynamoDB table containing all generated events
+      Value: !Ref DynamoDBTable

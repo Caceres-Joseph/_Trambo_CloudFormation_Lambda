@@ -1,0 +1,145 @@
+
+
+Description:  This template contains the Lambda function for insert item.
+
+Parameters: 
+
+  #-------------
+  # Table name for DynamoDB
+
+  TableName:
+      Description: An environment name that will be prefixed to resource names
+      Type: String
+
+
+Resources:
+
+
+  LambdaExecutionRole: 
+    Type: AWS::IAM::Role
+    Properties:
+    
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - lambda.amazonaws.com
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+
+
+  InsertFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: 
+        Fn::GetAtt: 
+          - LambdaExecutionRole
+          - Arn
+      Runtime: python3.6
+      Handler: "index.lambda_handler"
+      Code:
+        ZipFile: 
+          !Sub |
+            import json
+            import boto3
+            import decimal
+
+
+            def lambda_handler(event, context):
+                # this will create dynamodb resource object and
+                # here dynamodb is resource name
+                client = boto3.resource('dynamodb')
+
+                # dynamoDB table
+                table = client.Table("${TableName}")
+                table.put_item(Item= {'dpi': int(event['queryStringParameters']['dpi']) , 'name' : event['queryStringParameters']['name']})
+                print("successfully inserted")
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps(":)")
+                }
+
+
+
+  GetFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: 
+        Fn::GetAtt: 
+          - LambdaExecutionRole
+          - Arn
+      Runtime: python3.6
+      Handler: "index.lambda_handler"
+      Code:
+        ZipFile: 
+          !Sub |
+            import json
+            import boto3
+            import decimal
+
+
+            # Helper class to convert a DynamoDB item to JSON.
+            class DecimalEncoder(json.JSONEncoder):
+                def default(self, o):
+                    if isinstance(o, decimal.Decimal):
+                        if o % 1 > 0:
+                            return float(o)
+                        else:
+                            return int(o)
+                    return super(DecimalEncoder, self).default(o)
+
+            def lambda_handler(event, context):
+                # this will create dynamodb resource object and
+                # here dynamodb is resource name
+                client = boto3.resource('dynamodb')
+
+                # dynamoDB table
+                table = client.Table("${TableName}")
+                
+                result_data = table.scan()
+                
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps(result_data['Items'], cls=DecimalEncoder)
+                }
+
+
+  DeleteFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: 
+        Fn::GetAtt: 
+          - LambdaExecutionRole
+          - Arn
+      Runtime: python3.6
+      Handler: "index.lambda_handler"
+      Code:
+        ZipFile: 
+          !Sub |
+            import json
+            import boto3
+            import decimal
+
+
+            def lambda_handler(event, context):
+                # this will create dynamodb resource object and
+                # here dynamodb is resource name
+                client = boto3.resource('dynamodb')
+
+                # dynamoDB table
+                table = client.Table("${TableName}")
+                
+                #Delte item by id
+                response = table.delete_item(Key = { 'dpi': int(event['queryStringParameters']['dpi'])})
+                
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps("Deleted successfully")
+                }

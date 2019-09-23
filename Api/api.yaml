@@ -1,0 +1,33 @@
+Description:  This template contains the Api Gateway
+
+
+Parameters:
+
+
+  TableName:
+    Type: String
+    Default: customers_table
+  ApiName:
+    Type: String
+    Default: joseph_api
+    Description: creation of api
+
+
+Resources:
+
+  CustomerApi:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties: 
+      Ref: ApiName
+      
+      
+  CustomerResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId:
+        Ref: CustomerApi
+      ParentId:
+        Fn::GetAtt:
+          - CustomerApi
+          - RootResourceId
+      PathPart: branch

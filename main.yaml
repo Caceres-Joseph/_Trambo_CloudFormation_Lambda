@@ -11,7 +11,7 @@ Parameters:
   TableName:
     Description: An environment name that will be prefixed to resource names
     Type: String
-    Default: joseph
+    Default: joseph-table
 
   #+------------------------------------------------------------------
   #|  Bucket name
@@ -21,6 +21,21 @@ Parameters:
     Description: Bucket name where the templates are located
     Type: String
     Default: joseph-templates.s3-us-west-2.amazonaws.com
+
+
+  #+------------------------------------------------------------------
+  #| Name api
+  #+------------------------------------------------------------------
+
+  ApiName:
+    Type: String
+    Default: joseph_api
+    Description: creation of api
+
+  lambdaFunctionName:
+    Type: "String"
+    Description: Name function lambda
+    Default: "my-function"
 
 Resources:
 
@@ -38,7 +53,8 @@ Resources:
 
   #-------------
   # Lambda
-  InsertFunction:
+
+  lambdaFunction:
     Type: AWS::CloudFormation::Stack
     Properties:
       Parameters:
@@ -52,5 +68,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       Parameters:
-        TableName: !Ref TableName
+        ApiName: !Ref ApiName
+        ArnGetFunction: !GetAtt 'lambdaFunction.Outputs.ArnGetFunction'
       TemplateURL: !Sub https://${BucketName}/Ejercicio_Lambda/Api/api.yaml 

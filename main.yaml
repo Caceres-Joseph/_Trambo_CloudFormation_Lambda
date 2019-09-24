@@ -3,7 +3,7 @@ Description: This template contains the DynamoDB table required by our entire st
 Parameters: 
 
   #+------------------------------------------------------------------
-  #|  File VPC.yaml
+  #|  Data Base
   #+------------------------------------------------------------------
 
   #-------------

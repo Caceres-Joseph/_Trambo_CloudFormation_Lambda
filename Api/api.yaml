@@ -140,8 +140,12 @@ Resources:
       RestApiId:
         Ref: RestApi
       Description: Deployment for this rest api
-      StageName: testing4
+      StageName: test
 
+  #+------------------------------------------------------------------
+  #|  Rol for api gateway
+  #+------------------------------------------------------------------
+ 
 
   
   ApiGatewayIamRole:

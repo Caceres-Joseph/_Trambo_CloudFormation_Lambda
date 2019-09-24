@@ -33,7 +33,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
 
 
-  lambdaFunction:
+  PostFunction:
     Type: AWS::Lambda::Function
     Properties:
       Role: 
@@ -57,7 +57,7 @@ Resources:
 
                 # dynamoDB table
                 table = client.Table("${TableName}")
-                table.put_item(Item= {'dpi': int(event['queryStringParameters']['dpi']) , 'name' : event['queryStringParameters']['name']})
+                table.put_item(Item= {'dpi': event['queryStringParameters']['dpi'] , 'name' : event['queryStringParameters']['name']})
                 print("successfully inserted")
                 return {
                     'statusCode': 200,
@@ -135,7 +135,7 @@ Resources:
                 table = client.Table("${TableName}")
                 
                 #Delte item by id
-                response = table.delete_item(Key = { 'dpi': int(event['queryStringParameters']['dpi'])})
+                response = table.delete_item(Key = { 'dpi': event['queryStringParameters']['dpi']})
                 
                 return {
                     'statusCode': 200,
@@ -151,3 +151,14 @@ Outputs:
   ArnGetFunction:
       Description: Function for get all items from DynamoDB
       Value: !GetAtt GetFunction.Arn
+
+      
+  ArnPostFunction:
+      Description: Function for insert item in DynamoDB
+      Value: !GetAtt PostFunction.Arn
+
+      
+  ArnDeleteFunction:
+      Description: Function for delete specific item from DynamoDB
+      Value: !GetAtt DeleteFunction.Arn
+

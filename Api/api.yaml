@@ -9,43 +9,160 @@ Parameters:
 
   ArnGetFunction:
     Type: "String"
-    Description: Arn lambda function insert
+    Description: Function for get all items from DynamoDB
+    
+  ArnPostFunction:
+    Type: "String"
+    Description: Function for insert item in DynamoDB
+    
+  ArnDeleteFunction:
+    Type: "String"
+    Description: Function for delete specific item from DynamoDB
 
 Resources:
 
-  CustomerApi:
+  RestApi:
     Type: 'AWS::ApiGateway::RestApi'
     Properties: 
       Name: !Ref ApiName
-      
-    
+     
+  #+------------------------------------------------------------------
+  #|  Methods Get, Post and Delete
+  #+------------------------------------------------------------------
  
-  apiGatewayRootMethod:
+  #-------------
+  # Get all items from dynamod DB
+  
+  GetResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId:
+        Ref: RestApi
+      ParentId:
+        Fn::GetAtt:
+          - RestApi
+          - RootResourceId
+      PathPart: list
+ 
+  GetMethod:
     Type: "AWS::ApiGateway::Method"
     Properties:
       AuthorizationType: "NONE"
       HttpMethod: "GET"
       Integration:
-        ConnectionType: INTERNET
-        IntegrationHttpMethod: "GET"
+        IntegrationHttpMethod: "POST"
+        Credentials: !GetAtt ApiGatewayIamRole.Arn
         Type: "AWS_PROXY"
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2019-09-23/functions/${ArnGetFunction}/invocations"
-      ResourceId: !GetAtt "CustomerApi.RootResourceId"
-      RestApiId: !Ref "CustomerApi"
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ArnGetFunction}/invocations'
+        IntegrationResponses:
+          - StatusCode: 200
+      ResourceId: !Ref GetResource
+      RestApiId: !Ref RestApi
+    DependsOn: 
+      - RestApi   
+      - GetResource    
 
-  apiGatewayDeployment:
-    Type: "AWS::ApiGateway::Deployment"
-    DependsOn:
-      - "apiGatewayRootMethod"
+  #-------------
+  # Insert in data base 
+  
+  PostResource:
+    Type: "AWS::ApiGateway::Resource"
     Properties:
-      RestApiId: !Ref "CustomerApi"
-      StageName: test1
+      RestApiId:
+        Ref: RestApi
+      ParentId:
+        Fn::GetAtt:
+          - RestApi
+          - RootResourceId
+      PathPart: insert
+ 
+  PostMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      AuthorizationType: "NONE"
+      HttpMethod: "POST"
+      Integration:
+        IntegrationHttpMethod: "POST"
+        Credentials: !GetAtt ApiGatewayIamRole.Arn
+        Type: "AWS_PROXY"
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ArnPostFunction}/invocations'
+        IntegrationResponses:
+          - StatusCode: 200
+      ResourceId: !Ref PostResource
+      RestApiId: !Ref RestApi
+    DependsOn: 
+      - RestApi   
+      - PostResource    
 
+  #-------------
+  # Insert in data base 
+  
+  DeleteResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId:
+        Ref: RestApi
+      ParentId:
+        Fn::GetAtt:
+          - RestApi
+          - RootResourceId
+      PathPart: delete
+ 
       
-  lambdaApiGatewayInvoke:
-    Type: "AWS::Lambda::Permission"
+  DeleteMethod:
+    Type: "AWS::ApiGateway::Method"
     Properties:
-      Action: "lambda:InvokeFunction"
-      FunctionName: !Ref ArnGetFunction
-      Principal: "apigateway.amazonaws.com"
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ArnGetFunction}/*/GET/"
+      AuthorizationType: "NONE"
+      HttpMethod: "DELETE"
+      Integration:
+        IntegrationHttpMethod: "POST"
+        Credentials: !GetAtt ApiGatewayIamRole.Arn
+        Type: "AWS_PROXY"
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ArnDeleteFunction}/invocations'
+        IntegrationResponses:
+          - StatusCode: 200
+      ResourceId: !Ref DeleteResource
+      RestApiId: !Ref RestApi
+    DependsOn: 
+      - RestApi   
+      - DeleteResource    
+
+
+  #+------------------------------------------------------------------
+  #|  Deploy api gateway
+  #+------------------------------------------------------------------
+ 
+  apiGatewayDeployment:
+    DependsOn: 
+      - RestApi    
+    Type: "AWS::ApiGateway::Deployment"
+    Properties:
+      RestApiId:
+        Ref: RestApi
+      Description: Deployment for this rest api
+      StageName: testing4
+
+
+  
+  ApiGatewayIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ''
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - 'apigateway.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: LambdaAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action: 'lambda:*'
+                Resource: '*'

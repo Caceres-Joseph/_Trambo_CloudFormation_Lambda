@@ -9,7 +9,7 @@ Parameters:
   #-------------
   # DynamoDB
   TableName:
-    Description: An environment name that will be prefixed to resource names
+    Description: The table name in database
     Type: String
     Default: joseph-table
 
@@ -70,4 +70,6 @@ Resources:
       Parameters:
         ApiName: !Ref ApiName
         ArnGetFunction: !GetAtt 'lambdaFunction.Outputs.ArnGetFunction'
+        ArnPostFunction: !GetAtt 'lambdaFunction.Outputs.ArnPostFunction'
+        ArnDeleteFunction: !GetAtt 'lambdaFunction.Outputs.ArnDeleteFunction'
       TemplateURL: !Sub https://${BucketName}/Ejercicio_Lambda/Api/api.yaml 
